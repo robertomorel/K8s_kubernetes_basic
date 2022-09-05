@@ -8,7 +8,7 @@ Kubernetes is a portable, extensible, open source platform for managing containe
 
 ## About
 
-This project has a lot of ordered yaml files to exemplify the main features and advantages of using Kubernetes in you project.
+This project has a lot of ordered yaml files to exemplify the main features and advantages of using Kubernetes in your project.
 
 ### Files
 
