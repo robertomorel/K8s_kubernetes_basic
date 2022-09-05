@@ -23,7 +23,7 @@ This project has a lot of ordered yaml files to exemplify the main features and 
 - **02_pod:** it´s to create a now POD, unit that contains the provisioned containers
 - **03_replicaset:** it´s to scale the application, create multiple Pods and split application traffic
 - **04_deployment:** it´s to deploy the application; If the Deployment sees that the build version has changed, it will kill all ReplicaSets and Pods and run again
-- **05*service*[nodeport|loadbalancer]:** it´s the gateway to the application
+- **05_service_[nodeport|loadbalancer]:** it´s the gateway to the application
   - ClusterIP
   - NodePort
   - LoadBalancer
