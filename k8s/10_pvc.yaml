@@ -1,0 +1,16 @@
+# PVC - Persistent Volume Claim
+# Utilizado para fazer a solicitação de persistência de um determinado volume
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: goserver-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi # Precisamos de 5G
+
+####################### Para rodar #######################
+# kubectl apply -f k8s/10_pvc.yaml

@@ -1,0 +1,24 @@
+# Auxilia no auto-scaling
+# Aloca automaticamente as instâncias (pods) que preciso de acordo com o consumo de recursos
+# Questões:
+#   1. Como sei o quanto de recurso que minha aplicação está usando?
+#   2. Quais são os limites que a aplicação precisa atingir para reescalar recurso?
+#   R. Metric Server: coleta as métricas em tempo real de quantos recursos cada Pod (cada parte do Kubernetes) está consumindo
+#   -> Ferramenta útil: Prometeus
+# Toma todas as métricas e começa a provisionar novas réplicas dos Pods
+
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: goserver-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1 # API
+    name: goserver # Aplicação
+    kind: Deployment # Tipo
+  minReplicas: 1 # Mín de nova réplicas
+  maxReplicas: 5 # Max de novas réplicas
+  targetCPUUtilizationPercentage: 25 # Quando chegar a ocupação de CPU de 25%
+
+####################### Para rodar #######################
+# kubectl get hpa [mostra o hpa rodando]

@@ -1,0 +1,26 @@
+# O serviço de Loadbalance gera um IP externo quando estamos rodando serviços geranciados (Azure, Google, Amazon...)
+# O Ingress se torna um ponto único de entrava e rodeia a requisição para o serviço que queremos, como uma API Gateway
+# Tb funciona como um proxy reverso, como o Ngnx
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: ingress-host
+  annotations: # Cada sistema irá utilizar as anotations para interpretar para utilizar algumas funcionalidades (adaptadores)
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt"
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+spec: # Especificação
+  rules: # Regras
+    - host: "ingress.robertomorel.com.br" # Host aceito
+      http: # Acesso por http
+        paths:
+          - pathType: Prefix # Se for acessado http://ingress.robertomorel.com.br:80/admin
+            path: "/admin"
+            backend:
+              serviceName: goserver-service
+              servicePort: 80
+  tls:
+    - hosts:
+        - "ingress.robertomorel.com.br"
+      secretName: letsencrypt-tls

@@ -1,0 +1,118 @@
+# Veio para solucionar a issue do Replicaset:
+# Issue: caso eu tenha os 10 Pods rodando pelo replicaset e eu rodo este yaml novamente com uma versão diferente do build,
+#           este não irão atualização o build. A única forma de atualizar seria deletar todos os Pods para que o replicaset atualiza sua configuração
+#
+# Deployment > ReplicaSet -> Pod
+# Se no Deployment for visto que a versão do build mudou, ele vai matar todos os ReplicaSets e Pods e rodar novamente
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: goserver
+  labels:
+    app: goserver
+spec:
+  selector:
+    matchLabels:
+      app: goserver # Label que identifica todos os Pods desse deployment
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "goserver"
+    spec:
+      containers:
+        - name: goserver
+          image: "wesleywillians/hello-go:v9.6"
+
+          # Trabalhar de forma simples com variável de ambiente
+          # env:
+          #   - name: NAME
+          #     value: "Roberto"
+          #   - name: AGE
+          #     value: "36"
+
+          # Recursos
+          # kubectl top pod <nome_do_pod> [mostra como está o consumo do POD]
+          resources:
+            requests: # Qnto que o container exige com o mínimo para trabalhar. Reservando os recursos do cluster para o POD
+              cpu: "0.05" # Mínimo de CPU (vCPU -> 1000m milicores)
+              memory: 20Mi # Mínimo de memória
+            limits: # Até qnto de recurso pode ser utilizado? A soma de todos os limites não podem ultrapassar a qde de recursos do cluster
+              cpu: "0.05"
+              memory: 25Mi
+
+          ################################
+          ### PROBE ######################
+          ################################
+          # "startupProbe" verifica quando a inicialização termina para liberar o tráfego
+          # "readinessProbe" checa se o container está pronto para uso, se não tiver, desvia o tráfego
+          # "livenessProbe" irá reinicializar o container e a aplicação em caso de falha
+
+          # Funciona como se fosse o readinessProbe, mas apenas no processo de inicialização
+          # startupProbe --> readinessProbe --> livenessProbe
+          # Faz a verificação na inicialização inicial e quando termina, libera o tráfego para o readinessProbe começar
+          startupProbe:
+            httpGet: # Vai fazer a consulta no endpoint /healthz, na porta 8000.
+              path: /healthz
+              port: 8000
+            periodSeconds: 4
+            failureThreshold: 30
+
+          # Recurso utilizado para impedir tráfego enquanto a aplicação não estiver pronta (não subiu ainda)
+          readinessProbe:
+            httpGet: # Vai fazer a consulta no endpoint /healthz, na porta 8000.
+              path: /healthz
+              port: 8000
+            periodSeconds: 3 # Teste a cada 3s para ver se o container está pronto. Se não tiver, desvia o tráfego.
+            failureThreshold: 1
+            # initialDelaySeconds: 10
+
+          # Recurso utilizado para resolução de problemas qndo de bug na aplicação
+          # Tipos: HTTP (req via HTTP); COMMAND (comando executado dentro no container); TCP (conexão TCP com o container)
+          livenessProbe:
+            httpGet:
+              path: /healthz # Endpoint que o livenessProbe irá verificar
+              port: 8000 # Porta do container
+            periodSeconds: 5 # De qnto em quanto tempo essa verificação será feita?
+            failureThreshold: 1 # Quantas vezes tem que dar erro antes de reiniciar o container?
+            timeoutSeconds: 1 # Limite para timeout
+            successThreshold: 1 # Quantas vezes tem que testar para garantir que a aplicação tá ok?
+            # initialDelaySeconds: 15
+
+          envFrom:
+            - configMapRef: # Utilizando o configmap para settar as variáveis de ambiente
+                name: goserver-env # Nome do configmap
+            - secretRef: # Utilizando o secret para settar os dados sensíveis de ambiente
+                name: goserver-secret
+
+          # Monta um volume que preparamos
+          volumeMounts:
+            - mountPath: "/go/myfamily" # Vai montar o volume neste endereço
+              name: config # Nome do volume que será montado
+              readOnly: true # Não pode ser alterado
+            - mountPath: "/go/pvc" # Vai montar o volume neste endereço (PVC)
+              name: goserver-volume # Nome do volume que será montado
+
+      volumes:
+        - name: goserver-volume # Nome do volume
+          persistentVolumeClaim:
+            claimName: goserver-pvc # Irá utilizar um Persistent Volume Claim
+
+        # Para pegar um configmap e criar um volume com este arquivo físico
+        - name: config # Nome do volume
+          configMap:
+            name: configmap-family # Nome do configmap
+            items:
+              - key: members # Key que será utilizada
+                path: "family.txt" # Nome do arquivo físico que será criado
+####################### Para rodar #######################
+# kubectl apply -f k8s/04_deployment.yaml
+# kubectl rollout history <<nome-do-deployment>> [para pesquisar o histórico dos deployments]
+# kubectl rollout undo deployment <<nome-do-deployment-para-voltar-a-versao>>
+# kubectl describe deployment <<label>> [descrição de detalhes/eventos do deployment]
+# Para acessar a aplicação no browser via linha de comando
+#   1. kubectl apply -f k8s/04_deployment.yaml
+#   2. kubectl get po [lista os pods]
+#   3. kubectl port-forward svc/goserver-service 9000:80
+#   4. localhost:9000/healthz

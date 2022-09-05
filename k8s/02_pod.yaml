@@ -1,0 +1,19 @@
+# Criando um novo POD
+# Unidade que contém os containers provisionados
+# Podemos ter mais de um container por Pod, mas em geral é 1x1
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "goserver" # Nome do Pod
+  labels:
+    app: "goserver" # Label para auxiliar em buscas, filtros, etc
+spec: # Especificação do Pod
+  containers:
+    - name: goserver
+      image: "robertomorel/hello-go" # Carrega a imagem do docker file buildada
+
+####################### Para rodar #######################
+# kubectl apply -f k8s/02_pod.yaml
+# kubectl get po [para pesquisar o pod]
+# kubectl delete pod <<label>>

@@ -1,0 +1,31 @@
+# Criando replicaset para escalar a aplicação e criar vários Pods
+# Dividir o tráfego da aplicação
+# Este objeto pode gerenciar os pods
+# Issue: caso eu tenha os 10 Pods rodando pelo replicaset e eu rodo este yaml novamente com uma versão diferente do build,
+#           este não irão atualização o build. A única forma de atualizar seria deletar todos os Pods para que o replicaset atualiza sua configuração
+
+apiVersion: apps/v1
+kind: ReplicaSet # Tipo
+metadata:
+  name: goserver # Nome
+  labels:
+    app: goserver # Label
+spec: # Especificação
+  selector: # Seletor de label para filtar apenas algumas labels
+    matchLabels:
+      app: goserver
+  replicas: 10 # 10 réplicas do Pod que vamos subir a partir do template
+  template: # Template do Pod
+    metadata:
+      labels:
+        app: "goserver"
+    spec:
+      containers:
+        - name: goserver
+          image: "robertomorel/hello-go" # Carrega a imagem do docker file buildada
+
+####################### Para rodar #######################
+# kubectl apply -f k8s/03_replicaset.yaml
+# kubectl get replicasets [para pesquisar as replicasets]
+# kubectl get pods [para pesquisar o pod]
+# kubectl delete pod <<label>>

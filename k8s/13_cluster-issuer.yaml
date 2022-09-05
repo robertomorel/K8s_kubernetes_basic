@@ -1,0 +1,18 @@
+# Para criação dos certificados para o TLS
+# Será utilizado na propriedade "tls" do Ingress
+
+apiVersion: cert-manager.io/v1alpha2
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt
+  namespace: cert-manager
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: game.developer.br@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-tls # Nome do certificado
+    solvers: # Configuração para como utilizar o HTTPS
+      - http01:
+          ingress:
+            class: nginx

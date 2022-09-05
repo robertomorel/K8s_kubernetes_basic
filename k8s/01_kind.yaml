@@ -1,0 +1,14 @@
+# Como vai ser criado o cluster
+# https://kind.sigs.k8s.io/docs/user/configuration/#nodes
+
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4 # API que o kind irá se conectar
+
+nodes: # Papeis de cada nó
+  - role: control-plane
+  - role: worker
+  - role: worker
+  - role: worker
+
+####################### Para rodar #######################
+# kind create cluster --config=k8s/kind.yaml --name=new_cluster

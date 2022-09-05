@@ -1,0 +1,31 @@
+# Services é a porta de entrada para a nossa aplicação
+# Types:
+#   - ClusterIP
+#   - NodePort:
+#       -- para acessar o cluster kubernetes de fora dele
+#       -- Expõe uma porta "alta" para qlqr um dos nodes
+#   - LoadBalancer
+#       -- Gera um IP para acessar sua aplicação de fora
+#       -- Geralmente utilizamos qndo usamos um cluster gerenciado, ou um cluster kubernetes conectado à um provedor de nuvem
+#       -- Gera um IP experto para acessarmos um determinado servidor
+#       -- Tb gera um NodePort
+#   - HeadlerService
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: goserver-service
+spec:
+  selector: # Responsável por filtrar todos os Pods desse serviço
+    app: goserver # Label do deployment a ser filtrado
+  type: NodePort #
+  ports: # Portas que serão acessadas
+    - name: goserver-service # Nome para as portas
+      port: 80 # Porta do Service 
+      targetPort: 8000 # Porta do Container
+      protocol: TCP
+      nodePort: 30001 # Range 30000 <-> 32767
+####################### Para rodar #######################
+# kubectl apply -f k8s/05_service_nodeport.yaml
+# kubectl get svc [para listar os services]
+# kubectl port-forward svc/goserver-service 8000:80 [para redirecionar a porta da máquina para acessar o serviço de fora do cluster]

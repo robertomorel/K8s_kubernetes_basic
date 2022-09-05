@@ -1,0 +1,38 @@
+#
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+spec: # Template do POD para subir
+  replicas: 4 # Criar 4 PODs
+  serviceName: mysql-h
+  # podManagementPolicy: Parallel # Para não criar os Pods de forma consecutiva, mas em paralelo
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers: # Especificação do POD
+        - name: mysql
+          image: mysql
+          env: # Obrigatório passar as variáveis de ambiente
+            - name: MYSQL_ROOT_PASSWORD
+              value: root
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: mysql-volume
+
+  # Para criar um template de volume que quero que seja criado sempre que eu escalar uma nova ráplica do banco
+  volumeClaimTemplates:
+    - metadata:
+        name: mysql-volume
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
